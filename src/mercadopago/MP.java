@@ -27,7 +27,7 @@ import com.sun.jersey.client.apache.ApacheHttpClient;
  *
  */
 public class MP {
-	public static final String version = "0.1.8";
+	public static final String version = "0.2.0";
 
 	private final String client_id;
 	private final String client_secret;
@@ -76,7 +76,7 @@ public class MP {
 	 * @return
 	 * @throws JSONException
 	 */
-	public JSONObject getPaymentInfo (String id) throws JSONException, Exception {
+	public JSONObject getPayment (String id) throws JSONException, Exception {
 		String accessToken;
 		try {
 			accessToken = this.getAccessToken ();
@@ -88,6 +88,30 @@ public class MP {
 		String uriPrefix = this.sandbox ? "/sandbox" : "";
 			
 		JSONObject paymentInfo = RestClient.get (uriPrefix + "/collections/notifications/"+id+"?access_token="+accessToken);
+		
+		return paymentInfo;
+	}
+	
+	public JSONObject getPaymentInfo (String id) throws JSONException, Exception {
+		return this.getPayment (id);
+	}
+
+	/**
+	 * Get information for specific authorized payment
+	 * @param id
+	 * @return
+	 * @throws JSONException
+	 */
+	public JSONObject getAuthorizedPayment (String id) throws JSONException, Exception {
+		String accessToken;
+		try {
+			accessToken = this.getAccessToken ();
+		} catch (Exception e) {
+			JSONObject result = new JSONObject(e.getMessage());
+			return result;
+		}
+		
+		JSONObject paymentInfo = RestClient.get ("/authorized_payments/"+id+"?access_token="+accessToken);
 		
 		return paymentInfo;
 	}
@@ -134,6 +158,29 @@ public class MP {
 		cancelStatus.put("status", "cancelled");
 		
 		JSONObject response = RestClient.put ("/collections/"+id+"?access_token="+accessToken, cancelStatus);
+		
+		return response;
+	}
+	
+	/**
+	 * Cancel preapproval payment
+	 * @param id
+	 * @return
+	 * @throws JSONException
+	 */
+	public JSONObject cancelPreapprovalPayment (String id) throws JSONException, Exception {
+		String accessToken;
+		try {
+			accessToken = this.getAccessToken ();
+		} catch (Exception e) {
+			JSONObject result = new JSONObject(e.getMessage());
+			return result;
+		}
+
+		JSONObject cancelStatus = new JSONObject ();
+		cancelStatus.put("status", "cancelled");
+		
+		JSONObject response = RestClient.put ("/preapproval/"+id+"?access_token="+accessToken, cancelStatus);
 		
 		return response;
 	}
@@ -244,6 +291,52 @@ public class MP {
 		
 		JSONObject preferenceResult = RestClient.get ("/checkout/preferences/"+id+"?access_token="+accessToken);
 		return preferenceResult;
+	}
+	
+	/**
+	 * Create a preapproval payment
+	 * @param preapproval
+	 * @return
+	 * @throws JSONException
+	 */
+	public JSONObject createPreapprovalPayment (String preapproval) throws JSONException, Exception {
+		JSONObject preapprovalJSON = new JSONObject (preapproval);
+		return this.createPreapprovalPayment(preapprovalJSON);
+	}
+	public JSONObject createPreapprovalPayment (Map<?, ?> preapproval) throws JSONException, Exception {
+		JSONObject preapprovalJSON = map2json (preapproval);
+		return this.createPreapprovalPayment(preapprovalJSON);
+	}
+	public JSONObject createPreapprovalPayment (JSONObject preapproval) throws JSONException, Exception {
+		String accessToken;
+		try {
+			accessToken = this.getAccessToken ();
+		} catch (Exception e) {
+			JSONObject result = new JSONObject(e.getMessage());
+			return result;
+		}
+		
+		JSONObject preapprovalResult = RestClient.post ("/preapproval?access_token="+accessToken, preapproval);
+		return preapprovalResult;
+	}
+	
+	/**
+	 * Get a preapproval payment
+	 * @param id
+	 * @return
+	 * @throws JSONException 
+	 */
+	public JSONObject getPreapprovalPayment (String id) throws JSONException, Exception {
+		String accessToken;
+		try {
+			accessToken = this.getAccessToken ();
+		} catch (Exception e) {
+			JSONObject result = new JSONObject(e.getMessage());
+			return result;
+		}
+		
+		JSONObject preapprovalResult = RestClient.get ("/preapproval/"+id+"?access_token="+accessToken);
+		return preapprovalResult;
 	}
 	
 	/*****************************************************************************************************/
